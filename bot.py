@@ -8,9 +8,7 @@ import cogs
 import image
 import database
 import io
-
-DEFAULT_EMOJI_ID: int = 886242957555028018
-COMMAND_PREFIX: str = '$'
+from constants import *
 
 class BotClient(commands.Bot):
     def __init__(self, server_info: Dict[str, Any]):
@@ -26,7 +24,7 @@ class BotClient(commands.Bot):
         self.avatar_emojis: List[discord.Emoji] = []
 
         self.add_cog(cogs.AdminCommandsCog(self))
-        print('Admin commands cog attached.')
+        self.add_cog(cogs.UserCommandsCog(self))
     
     def reset_used_names(self) -> None:
         self.names_used.clear()
@@ -89,11 +87,11 @@ class BotClient(commands.Bot):
         await self.main_channel.send(msg)
     
     async def pick_random_image_url(self) -> str:
-        img_messages = [x.attachments[0].url for x in await self.image_channel.history().flatten()]
+        img_messages = [x.attachments[0].url async for x in self.image_channel.history(limit=MSG_READ_LIMIT)]
         return random.choice(img_messages)
 
     async def image_exists(self, image_hash: str, channel: discord.TextChannel) -> bool:
-        messages = await channel.history().flatten()
+        messages = await channel.history(limit=MSG_READ_LIMIT).flatten()
         image_messages = filter(self.msg_cotains_img_filter, messages)
         
         for msg in image_messages:
@@ -103,13 +101,13 @@ class BotClient(commands.Bot):
         return False
 
     async def on_message(self, msg: discord.Message) -> None:
+        await super().on_message(msg)
+
         if msg.channel != self.image_channel:
             return
 
         if msg.author == self.user:
             return
-
-        await super().on_message(msg)
 
         if not self.msg_cotains_img_filter(msg):
             return

@@ -1,7 +1,6 @@
 from PIL import Image
 import hashlib
-
-DEFAULT_IMAGE_SIZE = (10, 10)
+from constants import *
 
 def hash_image(img: Image.Image) -> str:
     img.resize(DEFAULT_IMAGE_SIZE, Image.ANTIALIAS)
